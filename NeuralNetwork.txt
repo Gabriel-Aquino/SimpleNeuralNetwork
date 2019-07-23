@@ -1,0 +1,90 @@
+#include <math.h>
+#include <string>
+using namespace std;
+
+int input1 = 1;
+int input2 = 0;
+
+float input3;
+float input4;
+float input5;
+float NeuronError5;
+float NeuronError4;
+float NeuronError3;
+
+float exit3;
+float exit4;
+
+int WaitExit;
+double exitOutput;
+float precision = 0.90;
+
+float t3 = -0.2;
+float t4 = -0.3;
+float t5 = -0.1;
+float w13 = 0.4;
+float w14 = -0.6;
+float w23 = 0.2;
+float w24 = 0.8;
+float w35 = -0.1;
+float w45 = 0.7;
+
+float FindError(int waitExit = 0)
+{
+    NeuronError5 = exitOutput * (1 - exitOutput) * (WaitExit - exitOutput);
+    NeuronError4 = exit4 * (1 - exit4) * (NeuronError5 * w45);
+    NeuronError3 = exit3 * (1 - exit3) * (NeuronError5 * w35);
+}
+
+float ReajustValue()
+{
+    w35 = w35 + precision * NeuronError5 * exit3;
+    w45 = w45 + precision * NeuronError5 * exit4;
+    w13 = w13 + precision * NeuronError3 * input1;
+    w14 = w14 + precision * NeuronError5 * input1;
+    w23 = w23 + precision * NeuronError3 * input2;
+    w24 = w24 + precision * NeuronError5 * input2;
+
+    t5 += precision * NeuronError5;
+    t4 += precision * NeuronError5;
+    t3 += precision * NeuronError3;
+}
+
+void exit1(float min, float max, int WaitExit)
+{
+    do
+    {
+        input3 = (w13 * input1) + (w23 * input2) + t3;
+        input4 = (w14 * input1) + (w24 * input2) + t4;
+        exit3 = 1 / (1 + pow(2.718, -input3));
+        exit4 = 1 / (1 + pow(2.718, -input4));
+        input5 = (w35 * exit3) + (w45 * exit4) + t5;
+        exitOutput = floorf((1 / (1 + pow(2.718, -input5))) * 1000) / 1000;
+      
+
+        FindError(WaitExit);
+        ReajustValue();
+    
+    }while (exitOutput < min || exitOutput > max);
+    
+    printf("camada de saida: %.1f \n", exitOutput);
+}
+
+int main()
+{
+
+    if ((input1 == 1 && input2 == 1) || (input1 == 0 && input2 == 0))
+    {
+        float min = 0.0011;
+        float max = 0.0099;
+        WaitExit = 0;
+        exit1(min, max, WaitExit);
+    }
+    if ((input1 == 1 && input2 == 0) || (input1 == 0 && input2 == 1))
+    {
+        float min = 0.99000;
+        float max = 0.999000;
+        WaitExit = 1;
+        exit1(min, max, WaitExit);
+    }
+}
